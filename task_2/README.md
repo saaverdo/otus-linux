@@ -4,8 +4,9 @@
 mdadm --create --verbose /dev/md0 -l 10 -n 6 /dev/sd[b-g]
 ### добавим 2 диска hot-spare
 mdadm /dev/md0 --add /dev/sd{h,i}
+
 <detail>
-<summary>вывод cat /proc/mdstat</summapy>
+<summary>вывод cat /proc/mdstat</summary>
 <p>
 Personalities : [raid10] 
 md0 : active raid10 sdi[7](S) sdh[6](S) sdg[5] sdf[4] sde[3] sdd[2] sdc[1] sdb[0]
@@ -18,7 +19,7 @@ unused devices: <none>
 ### "сломаем" несколько дисков в массиве:
 mdadm /dev/md0 --fail /dev/sd{e,f}
 <detail>
-<summary>вывод mdadm -D /dev/md0 </summapy>
+<summary>вывод mdadm -D /dev/md0 </summary>
 <p>
 /dev/md0:
            Version : 1.2
@@ -60,7 +61,7 @@ Consistency Policy : resync
 </detail>
 mdadm /dev/md0 --fail /dev/sdd
 <detail>
-<summary>вывод mdadm -D /dev/md0 </summapy>
+<summary>вывод mdadm -D /dev/md0 </summary>
 <p>
 /dev/md0:
            Version : 1.2
@@ -107,7 +108,7 @@ mdadm /dev/md0 --remove /dev/sd{d,e,f}
 mdadm /dev/md0 --add /dev/sd{d,e,f}
 
 <detail>
-<summary>массив снова жив и здоров</summapy>
+<summary>массив снова жив и здоров</summary>
 <p>
 /dev/md0:
            Version : 1.2
