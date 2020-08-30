@@ -1,11 +1,10 @@
-## *ДЗ 2*
+## ДЗ - 2
 ### добавил в Vagrantfile дисковые устройства sata 5-8 согласно ДЗ
 ### собираем массив raid-10 из 6-ти дисков
 mdadm --create --verbose /dev/md0 -l 10 -n 6 /dev/sd[b-g]
 ### добавим 2 диска hot-spare
 mdadm /dev/md0 --add /dev/sd{h,i}
-
-<detail>
+<details>
 <summary>вывод cat /proc/mdstat</summary>
 <p>
 Personalities : [raid10] 
@@ -14,11 +13,11 @@ md0 : active raid10 sdi[7](S) sdh[6](S) sdg[5] sdf[4] sde[3] sdd[2] sdc[1] sdb[0
       
 unused devices: <none>
 </p>
-</detail>
+</details>
 
 ### "сломаем" несколько дисков в массиве:
 mdadm /dev/md0 --fail /dev/sd{e,f}
-<detail>
+<details>
 <summary>вывод mdadm -D /dev/md0 </summary>
 <p>
 /dev/md0:
@@ -58,9 +57,9 @@ Consistency Policy : resync
        3       8       64        -      faulty   /dev/sde
        4       8       80        -      faulty   /dev/sdf
 </p>
-</detail>
+</details>
 mdadm /dev/md0 --fail /dev/sdd
-<detail>
+<details>
 <summary>вывод mdadm -D /dev/md0 </summary>
 <p>
 /dev/md0:
@@ -101,13 +100,13 @@ Consistency Policy : resync
        3       8       64        -      faulty   /dev/sde
        4       8       80        -      faulty   /dev/sdf
 </p>
-</detail>
+</details>
 
 ### удалим "сломанные" диски из массива и добавим их обратно:
 mdadm /dev/md0 --remove /dev/sd{d,e,f}
 mdadm /dev/md0 --add /dev/sd{d,e,f}
 
-<detail>
+<details>
 <summary>массив снова жив и здоров</summary>
 <p>
 /dev/md0:
@@ -147,12 +146,12 @@ Consistency Policy : resync
        8       8       48        -      spare   /dev/sdd
        9       8       64        -      spare   /dev/sde
 </p>
-</detail>
+</details>
 
 ### запишем информацию о массиве в mdadm.comf
 mkdir /etc/mdadm
 echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
-mdadm --detail --scan --verbose | awk '/ARRAY/{print}' >> /etc/mdadm/mdadm.conf
+mdadm --details --scan --verbose | awk '/ARRAY/{print}' >> /etc/mdadm/mdadm.conf
 ### сделаем пять разделов на массиве
 parted --script /dev/md0 mklabel gpt\  mkpart primary 2048s 20%\  mkpart primary 20% 40%\ mkpart primary ext4 40% 60%\ mkpart primary ext4 60% 80%\ mkpart primary ext4 80% 100%
 ### на полученных разделах делаем ФС ext4
