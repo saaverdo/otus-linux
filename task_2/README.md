@@ -153,7 +153,12 @@ mkdir /etc/mdadm
 echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
 mdadm --details --scan --verbose | awk '/ARRAY/{print}' >> /etc/mdadm/mdadm.conf
 ### сделаем пять разделов на массиве
-parted --script /dev/md0 mklabel gpt\  mkpart primary 2048s 20%\  mkpart primary 20% 40%\ mkpart primary ext4 40% 60%\ mkpart primary ext4 60% 80%\ mkpart primary ext4 80% 100%
+parted --script /dev/md0 mklabel gpt\
+mkpart primary 2048s 20%\
+mkpart primary 20% 40%\
+mkpart primary ext4 40% 60%\
+mkpart primary ext4 60% 80%\
+mkpart primary ext4 80% 100%
 ### на полученных разделах делаем ФС ext4
 for i in $(seq 1 5); do sudo mkfs.ext4 /dev/md0p$i; done
 ### создадим директории для монтирования разделов с массива и примонтируем их
