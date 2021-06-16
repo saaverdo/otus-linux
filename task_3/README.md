@@ -24,40 +24,42 @@
 Посмотрим, что у нас есть в наличии
 
     lsblk
-> [root@lvm ~]# lsblk
-> NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-> sda                       8:0    0   40G  0 disk 
-> ├─sda1                    8:1    0    1M  0 part 
-> ├─sda2                    8:2    0    1G  0 part /boot
-> └─sda3                    8:3    0   39G  0 part 
->   ├─VolGroup00-LogVol00 253:0    0 37.5G  0 lvm  /
->   └─VolGroup00-LogVol01 253:1    0  1.5G  0 lvm  [SWAP]
-> sdb                       8:16   0   10G  0 disk 
-> sdc                       8:32   0    2G  0 disk 
-> sdd                       8:48   0    1G  0 disk 
-> sde                       8:64   0    1G  0 disk 
+> [root@lvm ~]# lsblk  
+> NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT  
+> sda                       8:0    0   40G  0 disk   
+> ├─sda1                    8:1    0    1M  0 part   
+> ├─sda2                    8:2    0    1G  0 part /boot  
+> └─sda3                    8:3    0   39G  0 part   
+>   ├─VolGroup00-LogVol00 253:0    0 37.5G  0 lvm  /  
+>   └─VolGroup00-LogVol01 253:1    0  1.5G  0 lvm  [SWAP]  
+> sdb                       8:16   0   10G  0 disk   
+> sdc                       8:32   0    2G  0 disk   
+> sdd                       8:48   0    1G  0 disk   
+> sde                       8:64   0    1G  0 disk   
+
 
     df -Th
-> [root@lvm ~]# df -Th
-> Filesystem                      Type      Size  Used Avail Use% Mounted on
-> /dev/mapper/VolGroup00-LogVol00 xfs        38G  775M   37G   3% /
-> devtmpfs                        devtmpfs  109M     0  109M   0% /dev
-> tmpfs                           tmpfs     118M     0  118M   0% /dev/shm
-> tmpfs                           tmpfs     118M  4.5M  114M   4% /run
-> tmpfs                           tmpfs     118M     0  118M   0% /sys/fs/cgroup
-> /dev/sda2                       xfs      1014M   63M  952M   7% /boot
-> tmpfs                           tmpfs      24M     0   24M   0% /run/user/1000
+
+> [root@lvm ~]# df -Th  
+> Filesystem                      Type      Size  Used Avail Use% Mounted on  
+> /dev/mapper/VolGroup00-LogVol00 xfs        38G  775M   37G   3% /  
+> devtmpfs                        devtmpfs  109M     0  109M   0% /dev  
+> tmpfs                           tmpfs     118M     0  118M   0% /dev/shm  
+> tmpfs                           tmpfs     118M  4.5M  114M   4% /run  
+> tmpfs                           tmpfs     118M     0  118M   0% /sys/fs/cgroup  
+> /dev/sda2                       xfs      1014M   63M  952M   7% /boot  
+> tmpfs                           tmpfs      24M     0   24M   0% /run/user/1000  
 
 
-т. к. файловая система на / у нас xfs, мы не можем уменьшить её размер.
-Поэтому мы перенсём / на другой диск (sdb), удалим старую корневую ФС, 
-создадим на её месте новую необходимого размера, затем вернём / обратно на переделанный раздел
-В процессе нам понадобится утилита `xfsdump`:
+т. к. файловая система на / у нас xfs, мы не можем уменьшить её размер.  
+Поэтому мы перенсём / на другой диск (sdb), удалим старую корневую ФС,  
+создадим на её месте новую необходимого размера, затем вернём / обратно на переделанный раздел  
+В процессе нам понадобится утилита `xfsdump`:  
 
     yum install -y xfsdump
 
-Подготовим новый раздел для временного размещения корневого тома на sdb
-Инициализизируем физический том, создадим группу томов `vg_temp` и в ней - логический том `lv_temp`
+Подготовим новый раздел для временного размещения корневого тома на sdb  
+Инициализизируем физический том, создадим группу томов `vg_temp` и в ней - логический том `lv_temp`  
 
     pvcreate /dev/sdb
     vgcreate vg_temp /dev/sdb
@@ -101,37 +103,41 @@
 Залогинимся, проверим что система использует временный раздел как корень
     
     lsblk
-> [root@lvm ~]# lsblk
-> NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-> sda                       8:0    0   40G  0 disk 
-> ├─sda1                    8:1    0    1M  0 part 
-> ├─sda2                    8:2    0    1G  0 part /boot
-> └─sda3                    8:3    0   39G  0 part 
->   ├─VolGroup00-LogVol00 253:0    0 37.5G  0 lvm  
->   └─VolGroup00-LogVol01 253:2    0  1.5G  0 lvm  [SWAP]
-> sdb                       8:16   0   10G  0 disk 
-> └─vg_temp-lv_temp       253:1    0   10G  0 lvm  /
-> sdc                       8:32   0    2G  0 disk 
-> sdd                       8:48   0    1G  0 disk 
-> sde                       8:64   0    1G  0 disk 
 
-    df -Th
-> [root@lvm ~]# df -Th
-> Filesystem                  Type      Size  Used Avail Use% Mounted on
-> /dev/mapper/vg_temp-lv_temp xfs        10G  775M  9.3G   8% /
-> devtmpfs                    devtmpfs  110M     0  110M   0% /dev
-> tmpfs                       tmpfs     118M     0  118M   0% /dev/shm
-> tmpfs                       tmpfs     118M  4.5M  114M   4% /run
-> tmpfs                       tmpfs     118M     0  118M   0% /sys/fs/cgroup
-> /dev/sda2                   xfs      1014M   61M  954M   6% /boot
-> tmpfs                       tmpfs      24M     0   24M   0% /run/user/1000
+> [root@lvm ~]# lsblk  
+> NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT  
+> sda                       8:0    0   40G  0 disk   
+> ├─sda1                    8:1    0    1M  0 part   
+> ├─sda2                    8:2    0    1G  0 part /boot  
+> └─sda3                    8:3    0   39G  0 part   
+>   ├─VolGroup00-LogVol00 253:0    0 37.5G  0 lvm    
+>   └─VolGroup00-LogVol01 253:2    0  1.5G  0 lvm  [SWAP]  
+> sdb                       8:16   0   10G  0 disk   
+> └─vg_temp-lv_temp       253:1    0   10G  0 lvm  /  
+> sdc                       8:32   0    2G  0 disk   
+> sdd                       8:48   0    1G  0 disk   
+> sde                       8:64   0    1G  0 disk   
+
+    df -Th  
+
+> [root@lvm ~]# df -Th  
+> Filesystem                  Type      Size  Used Avail Use% Mounted on  
+> /dev/mapper/vg_temp-lv_temp xfs        10G  775M  9.3G   8% /  
+> devtmpfs                    devtmpfs  110M     0  110M   0% /dev  
+> tmpfs                       tmpfs     118M     0  118M   0% /dev/shm  
+> tmpfs                       tmpfs     118M  4.5M  114M   4% /run  
+> tmpfs                       tmpfs     118M     0  118M   0% /sys/fs/cgroup  
+> /dev/sda2                   xfs      1014M   61M  954M   6% /boot  
+> tmpfs                       tmpfs      24M     0   24M   0% /run/user/1000  
 
     lvs
-> [root@lvm ~]# lvs
-> LV       VG         Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-> LogVol00 VolGroup00 -wi-a----- <37.47g                                                    
-> LogVol01 VolGroup00 -wi-ao----   1.50g                                                    
-> lv_temp  vg_temp    -wi-ao---- <10.00g              
+
+> [root@lvm ~]# lvs  
+> LV       VG         Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert  
+> LogVol00 VolGroup00 -wi-a----- <37.47g                                                      
+> LogVol01 VolGroup00 -wi-ao----   1.50g                                                      
+> lv_temp  vg_temp    -wi-ao---- <10.00g                
+
 
 Теперь удалим логический том с исходной корневой ФС
     
@@ -139,10 +145,10 @@
 
 Создадим новый логический том нужного размера с файловой системой XFS
     
-    lvcreate -y -n LogVol00 -L 8G VolGroup00
-    mkfs.xfs /dev/VolGroup00/LogVol00 
-
-Теперь будем возвращать корневую ФС на её законное место.
+    lvcreate -y -n LogVol00 -L 8G VolGroup00  
+    mkfs.xfs /dev/VolGroup00/LogVol00  
+    
+Теперь будем возвращать корневую ФС на её законное место.  
 Монтируем этот раздел в папку `/mnt/new_root/`
 
     mount /dev/VolGroup00/LogVol00 /mnt/new_root/
@@ -153,7 +159,7 @@
 
 Делаем `chroot` во новый корень ФС
 
-    for i in /proc/ /sys/ /dev/ /run/; do mount --bind $i /mnt/new_root/$i; done
+    for i in /proc/ /sys/ /dev/ /run/; do mount --bind $i /mnt/new_root/$i; done  
     chroot /mnt/new_root/
     mount $(cat /etc/fstab | grep -o ^.boot) /boot
 
@@ -178,19 +184,19 @@
     sudo -i
     lsblk
 
-> [root@lvm ~]# lsblk
-> NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-> sda                       8:0    0   40G  0 disk 
-> ├─sda1                    8:1    0    1M  0 part 
-> ├─sda2                    8:2    0    1G  0 part /boot
-> └─sda3                    8:3    0   39G  0 part 
->   ├─VolGroup00-LogVol00 253:0    0    8G  0 lvm  /
->   └─VolGroup00-LogVol01 253:1    0  1.5G  0 lvm  [SWAP]
-> sdb                       8:16   0   10G  0 disk 
-> └─vg_temp-lv_temp       253:2    0   10G  0 lvm  
-> sdc                       8:32   0    2G  0 disk 
-> sdd                       8:48   0    1G  0 disk 
-> sde                       8:64   0    1G  0 disk 
+> [root@lvm ~]# lsblk  
+> NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT  
+> sda                       8:0    0   40G  0 disk   
+> ├─sda1                    8:1    0    1M  0 part   
+> ├─sda2                    8:2    0    1G  0 part /boot  
+> └─sda3                    8:3    0   39G  0 part   
+>   ├─VolGroup00-LogVol00 253:0    0    8G  0 lvm  /  
+>   └─VolGroup00-LogVol01 253:1    0  1.5G  0 lvm  [SWAP]  
+> sdb                       8:16   0   10G  0 disk   
+> └─vg_temp-lv_temp       253:2    0   10G  0 lvm    
+> sdc                       8:32   0    2G  0 disk   
+> sdd                       8:48   0    1G  0 disk   
+> sde                       8:64   0    1G  0 disk   
 
 Удалим нашу временную группу томов `vg_temp`
 
@@ -204,10 +210,11 @@
 
     pvscan
 
-> [root@lvm ~]# pvscan
-> PV /dev/sda3   VG VolGroup00      lvm2 [<38.97 GiB / <29.47 GiB free]
-> PV /dev/sdb                       lvm2 [10.00 GiB]
-> Total: 2 [<48.97 GiB] / in use: 1 [<38.97 GiB] / in no VG: 1 [10.00 GiB]
+> [root@lvm ~]# pvscan  
+> PV /dev/sda3   VG VolGroup00      lvm2 [<38.97 GiB / <29.47 GiB free]  
+> PV /dev/sdb                       lvm2 [10.00 GiB]  
+> Total: 2 [<48.97 GiB] / in use: 1 [<38.97 GiB] / in no VG: 1 [10.00 GiB]  
+
 
 Добавим его в группу томов `VolGroup00`
 
@@ -222,11 +229,11 @@
 
     lvs
 
-> [root@lvm ~]# lvs
-> LV       VG         Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-> LogVol00 VolGroup00 -wi-ao----  8.00g                                                    
-> LogVol01 VolGroup00 -wi-ao----  1.50g                                                    
-> lv-var   VolGroup00 rwi-a-r--- <9.94g                                    100.00       
+> [root@lvm ~]# lvs  
+> LV       VG         Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert  
+> LogVol00 VolGroup00 -wi-ao----  8.00g                                                      
+> LogVol01 VolGroup00 -wi-ao----  1.50g                                                      
+> lv-var   VolGroup00 rwi-a-r--- <9.94g                                    100.00         
 
 Перекинем данные из директории `var` корневого раздела на новый раздел для `/var`- `/dev/VolGroup00/lv-var`
 
@@ -248,14 +255,13 @@
 
     lvs
 
-> [root@lvm ~]# lvs
-> LV       VG         Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-> LogVol00 VolGroup00 -wi-ao----  8.00g                                                    
-> LogVol01 VolGroup00 -wi-ao----  1.50g                                                    
-> lv-home  VolGroup00 -wi-a----- 10.00g                                                    
-> lv-var   VolGroup00 rwi-aor--- <9.94g                                    100.00          
-
-
+> [root@lvm ~]# lvs  
+> LV       VG         Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert  
+> LogVol00 VolGroup00 -wi-ao----  8.00g                                                      
+> LogVol01 VolGroup00 -wi-ao----  1.50g                                                      
+> lv-home  VolGroup00 -wi-a----- 10.00g                                                      
+> lv-var   VolGroup00 rwi-aor--- <9.94g                                    100.00            
+  
 Перекинем данные из директории `/home` корневого раздела на новый раздел для `/home` - `/dev/VolGroup00/lv-home`
 
     mount /dev/VolGroup00/lv-home /mnt
@@ -271,7 +277,7 @@
 
     df -Th | grep home
 
-> [root@lvm ~]# df -Th | grep home
+> [root@lvm ~]# df -Th | grep home  
 > /dev/mapper/VolGroup00-lv--home xfs        10G   33M   10G   1% /home
 
 
@@ -283,14 +289,14 @@
 
     lvs | grep home
 
-> [root@lvm ~]# lvs | grep home
+> [root@lvm ~]# lvs | grep home  
 > lv-home  VolGroup00 -wi-ao---- 15.00g 
 
 а размер ФС - нет
 
     df -Th | grep home
 
-> [root@lvm ~]# df -Th | grep home
+> [root@lvm ~]# df -Th | grep home  
 > /dev/mapper/VolGroup00-lv--home xfs        10G   33M   10G   1% /home
 
 
@@ -302,7 +308,7 @@
 
     df -Th | grep home
 
-> [root@lvm ~]#     df -Th | grep home
+> [root@lvm ~]#     df -Th | grep home  
 > /dev/mapper/VolGroup00-lv--home xfs        15G   33M   15G   1% /home
 
 
@@ -310,8 +316,8 @@
 #### STAGE 3 - сгенерить файлы, сделать снапшот, удалить данные со снапшота, восстановиться со снапшота
 Генерим пачку странных файлов
 
-for i in $(seq 1 25); do dd if=/dev/urandom of=/home/test.humster$i bs=1024 count=$i; done
-ll /home
+    for i in $(seq 1 25); do dd if=/dev/urandom of=/home/test.humster$i bs=1024 count=$i; done
+    ll /home
 
 <details>
 <summary>Вывод ll home</summary>
@@ -358,26 +364,26 @@ drwx------. 3 vagrant vagrant    95 Jun 16 10:42 vagrant
 
     ll /home
 
-> [root@lvm ~]# ll /home
-> total 16
-> -rw-r--r--. 1 root    root    1024 Jun 16 10:54 test.humster1
-> -rw-r--r--. 1 root    root    2048 Jun 16 10:54 test.humster2
-> -rw-r--r--. 1 root    root    3072 Jun 16 10:54 test.humster3
-> -rw-r--r--. 1 root    root    4096 Jun 16 10:54 test.humster4
-> drwx------. 3 vagrant vagrant   95 Jun 16 10:42 vagrant
+> [root@lvm ~]# ll /home  
+> total 16  
+> -rw-r--r--. 1 root    root    1024 Jun 16 10:54 test.humster1  
+> -rw-r--r--. 1 root    root    2048 Jun 16 10:54 test.humster2  
+> -rw-r--r--. 1 root    root    3072 Jun 16 10:54 test.humster3  
+> -rw-r--r--. 1 root    root    4096 Jun 16 10:54 test.humster4  
+> drwx------. 3 vagrant vagrant   95 Jun 16 10:42 vagrant  
 
 
 не страшно, у нас есть снапшот!
  
     lvs
 
-> [root@lvm ~]# lvs
-> LV           VG         Attr       LSize  Pool Origin  Data%  Meta%  Move Log Cpy%Sync Convert
-> LogVol00     VolGroup00 -wi-ao----  8.00g                                                     
-> LogVol01     VolGroup00 -wi-ao----  1.50g                                                     
-> lv-home      VolGroup00 owi-aos--- 15.00g                                                     
-> lv-home-snap VolGroup00 swi-a-s---  1.00g      lv-home 0.00                                   
-> lv-var       VolGroup00 rwi-aor--- <9.94g                                     100.00    
+> [root@lvm ~]# lvs  
+> LV           VG         Attr       LSize  Pool Origin  Data%  Meta%  Move Log Cpy%Sync Convert  
+> LogVol00     VolGroup00 -wi-ao----  8.00g                                                       
+> LogVol01     VolGroup00 -wi-ao----  1.50g                                                       
+> lv-home      VolGroup00 owi-aos--- 15.00g                                                       
+> lv-home-snap VolGroup00 swi-a-s---  1.00g      lv-home 0.00                                     
+> lv-var       VolGroup00 rwi-aor--- <9.94g                                     100.00      
 
 смонтируем снапшот в `/mnt`
 
@@ -446,15 +452,15 @@ drwx------. 3 vagrant vagrant    95 Jun 16 10:42 vagrant
 
     mount | grep /dev/
 
-> [root@lvm ~]#     mount | grep /dev/
-> tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev,seclabel)
-> devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,seclabel,gid=5,mode=620,ptmxmode=000)
-> /dev/mapper/VolGroup00-LogVol00 on / type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
-> mqueue on /dev/mqueue type mqueue (rw,relatime,seclabel)
-> hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel)
-> /dev/mapper/VolGroup00-lv--var on /var type ext4 (rw,relatime,seclabel,data=ordered)
-> /dev/sda2 on /boot type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
-> /dev/mapper/VolGroup00-lv--home on /home type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+> [root@lvm ~]#     mount | grep /dev/  
+> tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev,seclabel)  
+> devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,seclabel,gid=5,mode=620,ptmxmode=000)  
+> /dev/mapper/VolGroup00-LogVol00 on / type xfs (rw,relatime,seclabel,attr2,inode64,noquota)  
+> mqueue on /dev/mqueue type mqueue (rw,relatime,seclabel)  
+> hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel)  
+> /dev/mapper/VolGroup00-lv--var on /var type ext4 (rw,relatime,seclabel,data=ordered)  
+> /dev/sda2 on /boot type xfs (rw,relatime,seclabel,attr2,inode64,noquota)  
+> /dev/mapper/VolGroup00-lv--home on /home type xfs (rw,relatime,seclabel,attr2,inode64,noquota)  
 
 
 .....
