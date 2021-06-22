@@ -1,4 +1,4 @@
-### ДЗ - 4
+### ДЗ - 7
 Vagrant стенд для NFS
 
 Условие задания:
@@ -90,7 +90,7 @@ Vagrant стенд для NFS
 >  Main PID: 3569 (code=exited, status=0/SUCCESS)  
 >    CGroup: /system.slice/nfs-server.service  
 
-### CLIENT
+#### CLIENT
 
 Сделаем папку и смонтируем в неё шару с сервера
 
