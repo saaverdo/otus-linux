@@ -40,7 +40,7 @@
     ls -l /
 <details>
     <summary>вывод команды</summary>
-    <p>
+
 >  sh-4.4# ls -l /   
 >  total 2097164  
 >  lrwxrwxrwx  1 root    root             7 May 11  2019 bin -> usr/bin  
@@ -65,7 +65,7 @@
 >  drwxr-xr-x 12 root    root           144 Jun 11  2020 usr  
 >  drwxrwxr-x  2 vagrant vagrant         42 Jun 24 09:53 vagrant  
 >  drwxr-xr-x 20 root    root           278 Jun 24 09:53 var  
-    </p>
+
 </details>
 
 #### 2) `rd.break`
@@ -100,7 +100,7 @@
     ls -l /
 <details>
     <summary>вывод команды</summary>
-    <p>
+
 >  sh-4.4# ls -l /   
 >  total 2097172  
 >  dr-xr-xr-x 20 root    root          4096 Jun 24 12:22 .  
@@ -129,7 +129,7 @@
 >  drwxr-xr-x 12 root    root           144 Jun 11  2020 usr  
 >  drwxrwxr-x  2 vagrant vagrant         42 Jun 24 09:53 vagrant  
 >  drwxr-xr-x 20 root    root           278 Jun 24 09:53 var  
-    </p>
+
 </details>
 
 теперь можно поменять пароль рута
@@ -167,7 +167,7 @@
 
 <details>
     <summary>вывод команды</summary>
-    <p>
+
 >  sh-4.4# ls -l /  
 >  total 2097164  
 >  lrwxrwxrwx.  1 root    root             7 May 11  2019 bin -> usr/bin  
@@ -194,7 +194,7 @@
 >  drwxr-xr-x. 12 root    root           144 Jun 11  2020 usr  
 >  drwxrwxr-x.  2 vagrant vagrant         42 Jun 24 09:53 vagrant  
 >  drwxr-xr-x. 20 root    root           278 Jun 24 09:53 var  
-    </p>
+
 </details>
 
 ### часть 2 Установить систему с LVM, после чего переименовать VG
