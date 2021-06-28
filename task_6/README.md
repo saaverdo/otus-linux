@@ -239,9 +239,9 @@
 
     yum install percona-release -y
 
-<detail>
+
+<details>
     <summary>лог установки</summary>
-<p>
 
 [root@task6-rpm ~]# yum install percona-release -y
 Failed to set locale, defaulting to C
@@ -259,15 +259,12 @@ Resolving Dependencies
 
 Dependencies Resolved
 
-=====================================================================================================================
- Package                            Arch                      Version                  Repository               Size
-=====================================================================================================================
+...
+
 Installing:
  percona-release                    noarch                    1.0-9                    otus                     16 k
 
-Transaction Summary
-=====================================================================================================================
-Install  1 Package
+...
 
 Total download size: 16 k
 Installed size: 18 k
@@ -298,8 +295,7 @@ Installed:
 
 Complete!
 
-</p>
-</detail>
+</details>
 
 
 
