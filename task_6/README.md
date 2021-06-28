@@ -8,15 +8,22 @@
 ### I Создать свой RPM пакет
 Приступим.
 Подготовим ВМ - установим необходимые для сборки `rpm` пакеты
+
     yum install -y redhat-lsb-core rpmdevtools rpm-build createrepo yum-utils tree
 
 По примеру в методичке возьмём `NGINX` и соберём его с `openssl`
 Скачаем `srpm` пакет `NGINX`
+
     wget https://nginx.org/packages/centos/7/SRPMS/nginx-1.20.1-1.el7.ngx.src.rpm
+
 И установим его
+
     rpm -i nginx-1.20.1-1.el7.ngx.src.rpm
+
 При этом создалось дерево каталогов для сборки:
+
     tree rpmbuild
+    
 <details>
     <summary>вывод</summary>
 
@@ -45,6 +52,7 @@
     wget https://www.openssl.org/source/latest.tar.gz && tar -xvf latest.tar.gz
 
 Установим необходимые зависимости 
+
     yum-builddep rpmbuild/SPECS/nginx.spec 
 
 <details>
@@ -85,11 +93,12 @@
 </details>
 
 Исправим `spec` файл - добавим нужные опции
+
     sed -i "s#--with-debug#--with-openssl=/root/openssl-1.1.1k#g" rpmbuild/SPECS/nginx.spec
 
 Соберём rpm пакет
 
-rpmbuild -bb 
+    rpmbuild -bb rpmbuild/SPECS/nginx.spec
 
 Смотрим, что же у нас получилось
 
@@ -141,13 +150,11 @@ rpmbuild -bb
 
 и для массовки добавим `percona server`
 
-    wget https://downloads.percona.com/downloads/percona-release/percona-release-1.0-9/redhat/percona-release-1.0-9.noarch.rpm \
--O /usr/share/nginx/html/repo/percona-release-0.1-9.noarch.rpm
+    wget https://downloads.percona.com/downloads/percona-release/percona-release-1.0-9/redhat/percona-release-1.0-9.noarch.rpm -O /usr/share/nginx/html/repo/percona-release-0.1-9.noarch.rpm
 
 И инициализируем репозиторий
 
     createrepo /usr/share/nginx/html/repo/ 
-
 
 > [root@task6-rpm ~]# createrepo /usr/share/nginx/html/repo/  
 > Spawning worker 0 with 1 pkgs  
