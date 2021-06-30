@@ -1,0 +1,5 @@
+# Command-line options for log monitor
+ALERT="STP-W-PORTSTATUS"
+LOG=/tmp/stplog.log
+LINENUM=/tmp/linenum
+

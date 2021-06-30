@@ -1,0 +1,2 @@
+LANG=C
+OPTIONS=-d /etc/httpd-8080

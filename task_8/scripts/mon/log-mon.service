@@ -1,0 +1,15 @@
+[Unit]
+Description=log monitor service
+After=systemd-journald.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/sysconfig/log-mon
+ExecStartPre= $LINENUM
+ExecStart=/usr/local/bin/log-mon.sh $ALERT $LOG $LINENUM
+# ExecStopPost=echo '0' > $LINENUM
+
+[Install]
+WantedBy=multi-user.target

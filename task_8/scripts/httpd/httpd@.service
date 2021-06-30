@@ -1,0 +1,20 @@
+[Unit]
+Description=The Apache HTTP Server instance %I
+After=network.target remote-fs.target nss-lookup.target
+Documentation=man:httpd(8)
+Documentation=man:apachectl(8)
+
+[Service]
+Type=forking
+PIDFile=/var/run/httpd/httpd-%i.pid
+EnvironmentFile=/etc/sysconfig/httpd@%i
+ExecStart=/usr/sbin/httpd $OPTIONS -c 'PidFile "/var/run/httpd/httpd-%i.pid"'
+ExecReload=/usr/sbin/httpd $OPTIONS -k graceful
+ExecStop=/bin/kill -WINCH ${MAINPID}
+KillSignal=SIGCONT
+PrivateTmp=true
+
+[Install]
+#RequiredBy=httpd.target
+# If httpd.target doesn't exists, comment above uncomment underlying directives
+WantedBy=multi-user.target

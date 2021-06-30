@@ -1,0 +1,21 @@
+[Unit]
+Description=Spawn-fcgi service
+After=network.target
+
+[Service]
+# Type of process running
+Type=forking
+# For type forking it's need to set PID file location
+# %p is the service name in this case
+PIDFile=/var/run/%p.pid
+# Set process name for logs
+SyslogIdentifier=%p
+# Path to file with environment variables
+EnvironmentFile=/etc/sysconfig/spawn-fcgi
+# Run service. OPTIONS are defined in environment file
+ExecStart=/usr/bin/spawn-fcgi $OPTIONS
+
+[Install]
+WantedBy=multi-user.target
+
+

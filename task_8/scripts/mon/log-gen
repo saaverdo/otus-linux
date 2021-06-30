@@ -1,0 +1,5 @@
+# Command-line options for log-gen service
+LINES=10
+SLOG=/vagrant/syslog.log
+DLOG=/tmp/stplog.log
+
