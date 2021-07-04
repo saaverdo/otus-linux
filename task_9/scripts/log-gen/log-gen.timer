@@ -1,0 +1,10 @@
+[Unit]
+Description=Run log generator script every 15 seconds
+
+[Timer]
+# Run every 30 second
+OnUnitActiveSec=30
+Unit=log-gen.service
+
+[Install]
+WantedBy=multi-user.target

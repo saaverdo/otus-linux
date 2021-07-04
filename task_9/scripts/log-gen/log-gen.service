@@ -1,0 +1,14 @@
+[Unit]
+Description=log generator service
+After=systemd-journald.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/sysconfig/log-gen
+ExecStart=/usr/bin/python3 /usr/local/bin/log_gen.py $LINES $SLOG $DLOG
+ExecReload=rm $LOG; /usr/bin/python3 /usr/local/bin/log_gen.py
+
+[Install]
+WantedBy=multi-user.target
