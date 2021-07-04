@@ -18,14 +18,20 @@ DISCLAIMER
 
 <details>
 <summary>файл параметров unit'а `log-gen`</summary>
+
+```    
 # Command-line options for log-gen service
 LINES=10
 SLOG=/vagrant/access-4560-644067.log
 DLOG=/vagrant/access.log
+```
+    
 </details>
 
 <details>
 <summary>файл `log-gen.service`</summary>
+
+```    
 [Unit]
 Description=log generator service
 After=systemd-journald.service
@@ -40,12 +46,14 @@ ExecReload=rm $LOG; /usr/bin/python3 /usr/local/bin/log_gen.py
 
 [Install]
 WantedBy=multi-user.target
-
+```
+    
 </details>
 
 <details>
 <summary>файл `log-gen.timer`</summary>
 
+```
 [Unit]
 Description=Run log generator script every 15 seconds
 
@@ -56,12 +64,14 @@ Unit=log-gen.service
 
 [Install]
 WantedBy=multi-user.target
-
+```
+    
 </details>
 
 <details>
 <summary>файл `log_gen.py`</summary>
 
+```
 #!/usr/bin/env python3
 
 from sys import argv
@@ -93,18 +103,19 @@ try:
                 f_o.write(f_i.readline())
 except FileNotFoundError as msg:
     print(f"Error {msg}")
-
+```
+    
 </details>
 
 ####  Приступаем
 
 Для запуска нашего основного скрипта каждый час добавим в крон соответствующую запись:
 
-  echo "0 * * * * root /vagrant/scripts/logmonitor.sh" >> /etc/crontab
+    echo "0 * * * * root /vagrant/scripts/logmonitor.sh" >> /etc/crontab
 
 для тестовых целей можно сделать запуск каждые 2 минуты:
 
-  echo "*/2 * * * * root /vagrant/scripts/logmonitor.sh" >> /etc/crontab
+    echo "*/2 * * * * root /vagrant/scripts/logmonitor.sh" >> /etc/crontab
 
 Скрипт ожидает 3 параметра: 
  имя лог-файла, сколько IP и сколько запрошенных страниц отбирать в отчёт
@@ -113,6 +124,7 @@ except FileNotFoundError as msg:
 <details>
 <summary>заголовок скрипта</summary>
 
+```
 LOGFILE=$1
 LOGFILE=${LOGFILE:-/vagrant/access.log}
 LASTRUN=/tmp/lastrun
@@ -124,7 +136,8 @@ ADDR=$3
 ADDR=${ADDR:-8}
 MAILTO="root"
 TODAY=$(date +%F_%T)
-
+```
+    
 </details>
 
 Основные действия в скрипте вынесены в отдельные функции для простоты 
@@ -153,6 +166,7 @@ LASTRUNTIME - время последнего запуска скрипта
 <details>
 <summary>функция start_check()</summary>
 
+```
 start_check(){
     if [ ! -f $LOGFILE ]; then
     echo "No file to parse"
@@ -172,7 +186,8 @@ start_check(){
       fi
     fi
 }
-
+```
+    
 </details>
 
 Для удобства часто повторяющийся кусок пайплайна вынесен в отдельную функцию `cns`
@@ -184,30 +199,31 @@ start_check(){
 
 Отбор данных вынесен в функцию `generate_report()`, что позволяет в итоге запустить основную часть простой командой 
 
-  generate_report | send_mail
+    generate_report | send_mail
 
 Читать лог будем командой `tail -n` - нам нужно получать информацию, которая добавилась с последнего запуска, поэтому `cat` не подходит.
 Для поиска IP адресов подошёл простой `cut` т.к. это первое поле каждой строки
 
-  tail -n $LASTLINE $LOGFILE | `cut -f 1 -d ' '` | sort | uniq -c | sort -rn | head -n $IP 
+    tail -n $LASTLINE $LOGFILE | `cut -f 1 -d ' '` | sort | uniq -c | sort -rn | head -n $IP 
 
 Запрашиваемые адреса - вопрос посложнее, т.к. есть ряд явно кривых запросов. поэтому будем ловить те, которые имеют вид `"GET /robots.txt HTTP/1.1"` и отсекать по регулярке с помощью `awk`
 
-  tail -n $LASTLINE $LOGFILE | `awk '/\".*HTTP.*\"/ {print $7}' `
+    tail -n $LASTLINE $LOGFILE | `awk '/\".*HTTP.*\"/ {print $7}' `
 
 Для списка всех ошибок/кодов ответа возьмём `grep`, регуляркой найдём код (он идёт после первой пары кавычек) и перевернув `rev` полученную строку сделаем как с IP адресами - обрежем по первому полю, перевернём обратно - и скормим стандартному `sort | uniq ...` 
 
-  cat $LOGFILE | `grep -oP '^\d+.+\[.+\] ".*" (\d+)'` | rev | cut -f 1 -d ' ' | rev | cns -0
+    cat $LOGFILE | `grep -oP '^\d+.+\[.+\] ".*" (\d+)'` | rev | cut -f 1 -d ' ' | rev | cns -0
 
 С ошибками уже проще - берём предыдущую команду для всех кодов ответа и `awk` отберём те, которые начинаются с 4xx или 5xx.
 И т.к их количество в задании не требовалось, выведем их одной строкой с помощью `paste`
 
-  | awk '/[45]..$/ {print $2}'| paste -s -d ' ' 
+    | awk '/[45]..$/ {print $2}'| paste -s -d ' ' 
 
 
 <details>
 <summary>функция generate_report()</summary>
 
+```
 generate_report(){
     # header
     echo "----------------------------------------------------"
@@ -237,16 +253,19 @@ generate_report(){
     echo "===================================================="
 
 }
-
+```
+    
 </details>
 
 <details>
 <summary>функция send_mail()</summary>
-
+    
+```
 send_mail(){
     mail -s "access.log report from ${TODAY}" $MAILTO
 }
-
+```
+    
 </details>
 
 Пример проверки почты:
@@ -258,7 +277,7 @@ send_mail(){
 >      2 root                  Sun Jul  4 12:50  68/3315  "access.log report from 2021-07-04_12:50:01"  
 >      3 root                  Sun Jul  4 12:52  69/3341  "access.log report from 2021-07-04_12:52:01"  
 >      4 root                  Sun Jul  4 12:54  70/3419  "access.log report from 2021-07-04_12:54:01"  
->  >N  5 root                  Sun Jul  4 12:56  66/3249  "access.log report from 2021-07-04_12:56:01"  
+>  \>N  5 root                  Sun Jul  4 12:56  66/3249  "access.log report from 2021-07-04_12:56:01"  
 >   N  6 root                  Sun Jul  4 12:58  67/3324  "access.log report from 2021-07-04_12:58:01"  
 >   N  7 root                  Sun Jul  4 13:00  68/3349  "access.log report from 2021-07-04_13:00:01"  
 >   N  8 root                  Sun Jul  4 13:02  69/3408  "access.log report from 2021-07-04_13:02:01"  
@@ -269,6 +288,7 @@ send_mail(){
 <details>
 <summary>и само письмо</summary>
 
+```
 Message 10:
 From root@task9-bash.localdomain  Sun Jul  4 13:06:01 2021
 Return-Path: <root@task9-bash.localdomain>
@@ -334,17 +354,19 @@ Cписок всех кодов возврата и их количество:
 код 304 был возвращён 1 раз
  
 ====================================================
-
+```
+    
 </details>
 
 Для контроля также можем запустить наш скрипт с полным файлом лога в качестве аргумента:
 
-  /usr/local/bin/logmonitor.sh /vagrant/access-4560-644067.log
+    /usr/local/bin/logmonitor.sh /vagrant/access-4560-644067.log
 
 
 <details>
 <summary>Результат работы скрипта с полным лог-файлом </summary>
 
+```
 Message 22:
 From root@task9-bash.localdomain  Sun Jul  4 13:29:08 2021
 Return-Path: <root@task9-bash.localdomain>
@@ -410,7 +432,8 @@ Cписок всех кодов возврата и их количество:
 код 304 был возвращён 1 раз
  
 ====================================================
-
+```
+    
 </details>
 
 
