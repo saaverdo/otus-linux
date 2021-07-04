@@ -107,10 +107,10 @@ except FileNotFoundError as msg:
   echo "*/2 * * * * root /vagrant/scripts/logmonitor.sh" >> /etc/crontab
 
 Скрипт ожидает 3 параметра: 
-- имя лог-файла, сколько IP и сколько запрошенных страниц отбирать в отчёт
+ имя лог-файла, сколько IP и сколько запрошенных страниц отбирать в отчёт
 По-умолчанию ожидается файл /vagrant/access.log, 10 IP-адресов и 8 страниц
 
-<detail>
+<details>
 <summary>заголовок скрипта</summary>
 
 LOGFILE=$1
@@ -125,7 +125,7 @@ ADDR=${ADDR:-8}
 MAILTO="root"
 TODAY=$(date +%F_%T)
 
-</detail>
+</details>
 
 Основные действия в скрипте вынесены в отдельные функции для простоты 
 Так, в функции `start_check` выполняется проверка существования лог-файла:
@@ -150,7 +150,7 @@ LASTRUNTIME - время последнего запуска скрипта
 > LASTLINE=+0 ;  
 > fi 
 
-<detail>
+<details>
 <summary>функция start_check()</summary>
 
 start_check(){
@@ -173,7 +173,7 @@ start_check(){
     fi
 }
 
-</detail>
+</details>
 
 Для удобства часто повторяющийся кусок пайплайна вынесен в отдельную функцию `cns`
 
@@ -205,7 +205,7 @@ start_check(){
   | awk '/[45]..$/ {print $2}'| paste -s -d ' ' 
 
 
-<detail>
+<details>
 <summary>функция generate_report()</summary>
 
 generate_report(){
@@ -238,16 +238,16 @@ generate_report(){
 
 }
 
-</detail>
+</details>
 
-<detail>
+<details>
 <summary>функция send_mail()</summary>
 
 send_mail(){
     mail -s "access.log report from ${TODAY}" $MAILTO
 }
 
-</detail>
+</details>
 
 Пример проверки почты:
 
@@ -266,7 +266,7 @@ send_mail(){
 >  &   
 
 
-<detail>
+<details>
 <summary>и само письмо</summary>
 
 Message 10:
@@ -335,14 +335,14 @@ Cписок всех кодов возврата и их количество:
  
 ====================================================
 
-</detail>
+</details>
 
 Для контроля также можем запустить наш скрипт с полным файлом лога в качестве аргумента:
 
   /usr/local/bin/logmonitor.sh /vagrant/access-4560-644067.log
 
 
-<detail>
+<details>
 <summary>Результат работы скрипта с полным лог-файлом </summary>
 
 Message 22:
@@ -411,7 +411,7 @@ Cписок всех кодов возврата и их количество:
  
 ====================================================
 
-</detail>
+</details>
 
 
 #### The end)
