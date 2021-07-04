@@ -31,7 +31,7 @@ start_check(){
       # check if log file not been truncated
       if ! (grep $LASTTIME $LOGFILE) > /dev/null 2>&1 ; then 
       LASTTIME=''
-      LASTLINE=+0 ; 
+      LASTLINE=0 ; 
       fi
     fi
 }
@@ -55,22 +55,22 @@ generate_report(){
     # ip
     echo "TOP ${IP} IP адресов с наибольшим количеством запросов: "
     echo "----------------------------------------------------"
-    tail -n $LASTLINE $LOGFILE | cut -f 1 -d ' ' | cns $IP | awk '{print $1, "запросов с IP-адреса", $2}'
+    tail -n +${LASTLINE} $LOGFILE | cut -f 1 -d ' ' | cns $IP | awk '{print $1, "запросов с IP-адреса", $2}'
     echo " "
     # requested pages
     echo "TOP ${ADDR} запрашиваемых адресов на сервере: "
     echo "----------------------------------------------------"
-    tail -n $LASTLINE $LOGFILE | awk '/\".*HTTP.*\"/ {print $7}' | cns $ADDR | awk '{print $1, "раз запрашивалась страница", $2}'
+    tail -n +${LASTLINE} $LOGFILE | awk '/\".*HTTP.*\"/ {print $7}' | cns $ADDR | awk '{print $1, "раз запрашивалась страница", $2}'
     echo " "
     # all errors - no requirenemt to count them!
     echo "Все ошибки c момента последнего запуска: "
     echo "----------------------------------------------------"
-    tail -n $LASTLINE $LOGFILE | grep -oP '^\d+.+\[.+\] ".*" (\d+)' | rev | cut -f 1 -d ' ' | rev | cns -0 | awk '/[45]..$/ {print $2}'| paste -s -d ' ' 
+    tail -n +${LASTLINE} $LOGFILE | grep -oP '^\d+.+\[.+\] ".*" (\d+)' | rev | cut -f 1 -d ' ' | rev | cns -0 | awk '/[45]..$/ {print $2}'| paste -s -d ' ' 
     echo " "
     # all codes
     echo "Cписок всех кодов возврата и их количество: "
     echo "----------------------------------------------------"
-    tail -n $LASTLINE $LOGFILE | grep -oP '^\d+.+\[.+\] ".*" (\d+)' | rev | cut -f 1 -d ' ' | rev | cns -0 | awk '{print "код", $2, "был возвращён", $1, "раз"}'
+    tail -n +${LASTLINE} $LOGFILE | grep -oP '^\d+.+\[.+\] ".*" (\d+)' | rev | cut -f 1 -d ' ' | rev | cns -0 | awk '{print "код", $2, "был возвращён", $1, "раз"}'
     echo " "
     echo "===================================================="
 
