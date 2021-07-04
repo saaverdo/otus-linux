@@ -14,22 +14,30 @@ Systemd
 ### I - Написать service, который будет раз в 30 секунд мониторить лог
 
 #### log-gen.service
+
 ~~чтобы понять, как думает пингвин, надо стать пингвином~~
 Чтобы мониторить лог, нам понадобится лог )))
 Его также оформим генератор лога как service - `log-gen` 
-Для этого набросаем питоновский скрипт (сорри, джексоны, на чём мог, на том и накалякал), который будет каждые 30 секунд (так задано в `log-gen.timer`) берёт очередные 10 (параметр $LINES - задаётся в файле параметров unit'а) строк из источника, syslog-файла с одного стенда (параметр $SLOG - задаётся в файле параметров unit'а) и дописывает их в лог-файл (параметр $DLOG - задаётся в файле параметров unit'а). Этот банкет, конечно, рано или поздно закончится, но не сразу, а если дописать логов в источник, он их таки допишет в лог-назначение к вящей радости и росту спама в `journald`.
+Для этого набросаем питоновский скрипт (сорри, джексоны, на чём мог, на том и накалякал), который будет каждые 30 секунд (так задано в `log-gen.timer`) берёт очередные 10 (параметр $LINES - задаётся в файле параметров unit'а) строк из источника, syslog-файла с одного стенда (параметр $SLOG - задаётся в файле параметров unit'а) и дописывает их в лог-файл (параметр $DLOG - задаётся в файле параметров unit'а). 
+Этот банкет, конечно, рано или поздно закончится, но не сразу, а если дописать логов в источник, он их таки допишет в лог-назначение к вящей радости и росту спама в `journald`.
 Теперь всё это откровение запишем православным образом ~~на скрижа~~ в следующих файлах:
 
 <details>
 <summary>файл параметров unit'а `log-gen`</summary>
+    
+```
 # Command-line options for log-gen service
 LINES=10
 SLOG=/vagrant/syslog.log
 DLOG=/tmp/stplog.log
+```
+
 </details>
 
 <details>
 <summary>файл `log-gen.service`</summary>
+
+``` 
 [Unit]
 Description=log generator service
 After=systemd-journald.service
@@ -44,12 +52,14 @@ ExecReload=rm $LOG; /usr/bin/python3 /usr/local/bin/log_gen.py
 
 [Install]
 WantedBy=multi-user.target
+```
 
 </details>
 
 <details>
 <summary>файл `log-gen.timer`</summary>
 
+```
 [Unit]
 Description=Run log generator script every 15 seconds
 
@@ -60,12 +70,14 @@ Unit=log-gen.service
 
 [Install]
 WantedBy=multi-user.target
+```
 
 </details>
 
 <details>
 <summary>файл `log_gen.py`</summary>
 
+```
 #!/usr/bin/env python3
 
 from sys import argv
@@ -97,6 +109,7 @@ try:
                 f_o.write(f_i.readline())
 except FileNotFoundError as msg:
     print(f"Error {msg}")
+```
 
 </details>
 
@@ -115,15 +128,20 @@ except FileNotFoundError as msg:
 
 <details>
 <summary>файл параметров unit'а `log-mon`</summary>
+
+```
 # Command-line options for log monitor
 ALERT="STP-W-PORTSTATUS"
 LOG=/tmp/stplog.log
 LINENUM=/tmp/linenum
-
+```
+    
 </details>
 
 <details>
 <summary>файл `log-mon.service`</summary>
+    
+```
 [Unit]
 Description=log monitor service
 After=systemd-journald.service
@@ -139,12 +157,14 @@ ExecStart=/usr/local/bin/log-mon.sh $ALERT $LOG $LINENUM
 
 [Install]
 WantedBy=multi-user.target
+```
 
 </details>
 
 <details>
 <summary>файл `log-mon.timer`</summary>
-
+    
+```
 [Unit]
 Description=Run log monitor script every 15 seconds
 
@@ -155,11 +175,14 @@ Unit=log-mon.service
 
 [Install]
 WantedBy=multi-user.target
-
+```
+    
 </details>
 
 <details>
 <summary>файл `log_mon.py`</summary>
+    
+```
 #!/bin/bash
 
 ALERTMSG=$1
@@ -182,7 +205,8 @@ else
 fi
 
 echo $(wc -l $LOG | cut -d " " -f 1) > $LINENUM
-
+```
+    
 </details>
 
 
@@ -268,6 +292,7 @@ chmod +x /usr/local/bin/*
 <details>
 <summary>вывод</summary>
 
+```
 [root@task8-systemd ~]# cat /etc/init.d/spawn-fcgi
 #!/bin/sh
 #
@@ -377,10 +402,11 @@ case "$1" in
         exit 2
 esac
 exit $?
+```
 
 </details>
 
-Баатюкши, вот такое надо показывать в лекции - тогда полку уверовавших в `systemd` основательно прибудет.
+Баатюшки, вот такое надо показывать в лекции - тогда полку уверовавших в `systemd` основательно прибудет.
 
 Раскомментируем строки с переменными в `/etc/sysconfig/spawn-fcgi`
 
@@ -403,6 +429,7 @@ exit $?
 <details>
 <summary>Вывод</summary>
 
+```
 [root@task8-systemd ~]# systemctl status spawn-fcgi
 ● spawn-fcgi.service - spawn-fcgi service
    Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; enabled; vendor preset: disabled)
@@ -443,7 +470,8 @@ exit $?
            ├─7921 /usr/bin/php-cgi
            ├─7922 /usr/bin/php-cgi
            └─7923 /usr/bin/php-cgi
-
+```
+    
 </details>
 
 
@@ -456,6 +484,8 @@ exit $?
 
 <details>
 <summary>`/usr/lib/systemd/system/httpd.service`</summary>
+    
+```
 [root@task8-systemd ~]# cat /usr/lib/systemd/system/httpd.service
 [Unit]
 Description=The Apache HTTP Server
@@ -479,12 +509,14 @@ PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
-
+```
+    
 </details>
 и
 <details>
 <summary>`/etc/sysconfig/httpd`</summary>
-
+    
+```
 [root@task8-systemd ~]# cat /etc/sysconfig/httpd
 #
 # This file can be used to set additional environment variables for
@@ -511,7 +543,8 @@ WantedBy=multi-user.target
 # locale.)
 #
 LANG=C
-
+```
+    
 </details>
 
 Мда, не то~~рт~~
@@ -520,7 +553,8 @@ LANG=C
 
 <details>
 <summary>`/etc/systems/system/httpd@.service`</summary>
-
+    
+```
 [Unit]
 Description=The Apache HTTP Server instance %I
 After=network.target remote-fs.target nss-lookup.target
@@ -541,6 +575,7 @@ PrivateTmp=true
 #RequiredBy=httpd.target
 # If httpd.target doesn't exists, comment above uncomment underlying directives
 WantedBy=multi-user.target
+```
 
 </details>
 
@@ -552,7 +587,7 @@ WantedBy=multi-user.target
     sudo cp /vagrant/scripts/httpd/httpd@.service /etc/systemd/system/
     sudo cp /vagrant/scripts/httpd/httpd@80* /etc/sysconfig/
 
-Подправим `serverroot' и прочая
+Подправим `serverroot` и прочая
 
     sudo cp -a /etc/httpd /etc/httpd-8080
     sudo sed -i 's#^ServerRoot "/etc/httpd"$#ServerRoot "/etc/httpd-8080"#g' /etc/httpd-8080/conf/httpd.conf
@@ -573,6 +608,7 @@ WantedBy=multi-user.target
 <details>
 <summary>статус сервисов</summary>
 
+```
 [root@task8-systemd ~]# systemctl status httpd@808{0,1}
 ● httpd@8080.service - The Apache HTTP Server instance 8080
    Loaded: loaded (/etc/systemd/system/httpd@.service; enabled; vendor preset: disabled)
@@ -616,7 +652,8 @@ Jun 30 20:49:09 task8-systemd httpd[3276]: AH00558: httpd: Could not reliably de
 Jun 30 20:49:09 task8-systemd systemd[1]: Can't open PID file /var/run/httpd/httpd-8081.pid (yet?) after start: No such file or directory
 Jun 30 20:49:09 task8-systemd systemd[1]: Started The Apache HTTP Server instance 8081.
 Hint: Some lines were ellipsized, use -l to show in full.
-
+```
+    
 </details>
 
 #### The end)
