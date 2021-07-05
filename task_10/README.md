@@ -18,7 +18,21 @@
     Результат ДЗ - скрипт запускающий 2 процесса с разными nice и замеряющий время выполнения и лог консоли
 
 
-#### реализация ps ax используя анализ /proc
+#### реализация ps ax используя анализ /proc 
+
+`PID`  вытащми как имя каталога в `/proc/`
+А прочие данные - `PPID`, `TTY`, `STAT`, `TIME` берём из `/proc/${PID}/stat`. https://linux.die.net/man/5/proc
+Время взял как сумму `uTIME` и `sTIME` - там оно в тиках, т.н. `jiffies` поэтому потребовалось дополнитльное преобранзование:
+
+> get_time(){  
+>     #https://stackoverflow.com/questions/3875801/convert-jiffies-to-seconds  
+>     SYS_CLK_TCK=$(getconf CLK_TCK)  
+>     SUMTIME=$(awk '{print $14+$15}' "/proc/${PID}/stat")  
+>     PSTIME="$(($SUMTIME / $SYS_CLK_TCK / 60)):$(($SUMTIME / $SYS_CLK_TCK % 60))"  
+>     echo "$PSTIME"  
+>  }  
+
+Имя команды - из `/proc/${PID}/cmdline`, но если там пусто,   то берём второе поле из `/proc/${PID}/stat` и оборачиваем квадратными скобками
 
 Скрипт `psax.sh` лежит в директории `/vagrant/`.
 В вывод добавлено также поле `PPID` - просто так )
