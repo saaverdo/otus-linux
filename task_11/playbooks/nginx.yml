@@ -1,0 +1,6 @@
+---
+- name: NGINX | Install EPEL Repo
+  hosts: all
+  become: true
+  roles:
+    - nginx
