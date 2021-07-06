@@ -50,32 +50,36 @@
 
     vagrant ssh-config | grep -i -B3 port
 
-> Host nginx-lab-01  
->   HostName 127.0.0.1  
->   User vagrant  
->   Port 2222  
-> --  
-> Host nginx-lab-02  
->   HostName 127.0.0.1  
->   User vagrant  
->   Port 2200  
-    
+```
+Host nginx-lab-01  
+  HostName 127.0.0.1  
+  User vagrant  
+  Port 2222  
+--  
+Host nginx-lab-02  
+  HostName 127.0.0.1  
+  User vagrant  
+  Port 2200  
+```
+
 В директории `inventory` сделаем файл `hosts.yml` где опишем наши ВМ
 
-> all:  
->   children:  
->     web:  
->   vars:  
->     ansible_host: 127.0.0.1  
->   
-> web:  
->   hosts:  
->    nginx-lab-01:  
->       ansible_port: 2222  
->       ansible_ssh_private_key_file: ./.vagrant/machines/nginx-lab-01/virtualbox/private_key  
->    nginx-lab-02:  
->       ansible_port: 2200  
->       ansible_ssh_private_key_file: ./.vagrant/machines/nginx-lab-02/virtualbox/private_key  
+```
+all:  
+  children:  
+    web:  
+  vars:  
+    ansible_host: 127.0.0.1  
+  
+web:  
+  hosts:  
+   nginx-lab-01:  
+      ansible_port: 2222  
+      ansible_ssh_private_key_file: ./.vagrant/machines/nginx-lab-01/virtualbox/private_key  
+   nginx-lab-02:  
+      ansible_port: 2200  
+      ansible_ssh_private_key_file: ./.vagrant/machines/nginx-lab-02/virtualbox/private_key  
+```
 
 Для установки nginx будем использовать роль `ansible`.
 Сделаем необходимую структуру директорий
@@ -123,87 +127,102 @@
     mkdir playbooks
     touch playbooks/nginx.yml
 
-Теперь добавим в наш `playbook` `nginx.yml` указание запустить роль `nginx`
+Добавим в наш `playbook` `nginx.yml` указание запустить роль `nginx`
 
+```
 - name: NGINX | Install EPEL Repo
   hosts: all
   become: true
   roles:
     - nginx
+```
 
 Теперь переходим в `roles/nginx`
 В директории `templates` нашей роли `roles/nginx` создадим файл фаблона конфигурации NGINX
 
-> (.venv) serg@hpg11u:~/otus/otus-linux/task_11$ cat roles/nginx/templates/nginx.conf.j2   
-> # {{ ansible_managed }}  
-> events {  
->     worker_connections 1024;  
-> }  
->   
-> http {  
->     server {  
->         listen       {{ nginx_listen_port }} default_server;  
->         server_name  default_server;  
->         root         /usr/share/nginx/html;  
->   
->         location / {  
->         }  
->     }  
-> }  
+```
+(.venv) serg@hpg11u:~/otus/otus-linux/task_11$ cat roles/nginx/templates/nginx.conf.j2   
+# {{ ansible_managed }}  
+events {  
+    worker_connections 1024;  
+}  
+  
+http {  
+    server {  
+        listen       {{ nginx_listen_port }} default_server;  
+        server_name  default_server;  
+        root         /usr/share/nginx/html;  
+  
+        location / {  
+        }  
+    }  
+}  
+```
 
 В `defaults/mail.yml` добавим переменную `nginx_listen_port: 8080`
 А в `handlers/mail.yml`, соответственно, `handlers`
 
-> - name: restart nginx  
->   systemd:  
->     name: nginx  
->     state: restarted  
->     enabled: yes  
-> - name: reload nginx  
->   systemd:  
->     name: nginx  
->     state: reloaded  
+```
+- name: restart nginx  
+  systemd:  
+    name: nginx  
+    state: restarted  
+    enabled: yes  
+- name: reload nginx  
+  systemd:  
+    name: nginx  
+    state: reloaded  
+```
 
-Теперь остаётся только прописать таски для роли `nginx`. 
+Осталось прописать таски для роли `nginx`. 
 Устанавливать будем из epel-release
 
-> (.venv) serg@hpg11u:~/otus/otus-linux/task_11$ cat roles/nginx/tasks/main.yml   
-> ---  
-> # tasks file for roles/nginx  
-> - name: NGINX | Install EPEL Repo package from standart repo  
->   yum:  
->     name: epel-release  
->     state: present  
->   
-> - name: Install packages  
->   yum:  
->     name: '{{ item }}'  
->     state: present  
->   loop: '{{ nginx_host_packages }}'  
->   
-> - name: NGINX | Install nginx package from EPEL Repo  
->   yum:  
->     name: nginx  
->     state: latest  
->   notify:  
->     - restart nginx  
->   tags:  
->     - nginx-package  
->     - packages  
->   
-> - name: NGINX | Create NGINX config from template  
->   template:  
->     src: ../templates/nginx.conf.j2  
->     dest: /etc/nginx/nginx.conf  
->   notify:  
->     - reload nginx  
->   tags:  
->     - nginx-config  
+
+<details>
+<summary>файл с тасками роли nginx</summary>
+
+```
+(.venv) serg@hpg11u:~/otus/otus-linux/task_11$ cat roles/nginx/tasks/main.yml   
+---  
+# tasks file for roles/nginx  
+- name: NGINX | Install EPEL Repo package from standart repo  
+  yum:  
+    name: epel-release  
+    state: present  
+  
+- name: Install packages  
+  yum:  
+    name: '{{ item }}'  
+    state: present  
+  loop: '{{ nginx_host_packages }}'  
+  
+- name: NGINX | Install nginx package from EPEL Repo  
+  yum:  
+    name: nginx  
+    state: latest  
+  notify:  
+    - restart nginx  
+  tags:  
+    - nginx-package  
+    - packages  
+  
+- name: NGINX | Create NGINX config from template  
+  template:  
+    src: ../templates/nginx.conf.j2  
+    dest: /etc/nginx/nginx.conf  
+  notify:  
+    - reload nginx  
+  tags:  
+    - nginx-config  
+```
+
+</details>
 
 и ~~я получил эту ро~~ запустить нашу роль:
 
     ansible-playbook playbooks/nginx.yml
 
+```
 > PLAY [NGINX | Install EPEL Repo] ************************************************************************  
 >   
 > TASK [Gathering Facts] **********************************************************************************  
@@ -241,6 +260,7 @@
 > PLAY RECAP **********************************************************************************************  
 > nginx-lab-01               : ok=7    changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0     
 > nginx-lab-02               : ok=7    changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0     
+```
 
 Уря!
 Проверяем:
