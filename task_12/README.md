@@ -4,7 +4,8 @@
 >   
 > Дать конкретному пользователю права работать с докером и возможность рестартить докер сервис  
 
-#### часть I  Запретить всем пользователям, кроме группы admin логин в выходные (суббота и воскресенье), без учета праздников
+#### часть I  
+#### Запретить всем пользователям, кроме группы admin логин в выходные (суббота и воскресенье), без учета праздников
 
 Установим ansible в виртуальном окружении python
 
@@ -16,7 +17,7 @@ pip install ansible
 
 
 ##### Важно!
-Также нам понадобится модуль `community.general.pamd`, для этого установим пакет `community.general`
+нам понадобится модуль `community.general.pamd`, для этого установим пакет `community.general`
 
     ansible-galaxy collection install community.general
 
@@ -184,15 +185,18 @@ fi
 
 </details>
 
-#### часть II Дать конкретному пользователю права работать с докером и возможность рестартить докер сервис
+#### часть II 
+#### Дать конкретному пользователю права работать с докером и возможность рестартить докер сервис
 
 Для выполнения этой задачи сделаем роль `docker`
 Права будем давать пользователю `vagrant`, что и отобразим в переменных:
 
-> (.venv) serg@hpg11u:~/otus/otus-linux/task_12$ cat roles/docker/defaults/> main.yml   
-> ---  
-> \# defaults file for roles/docker  
-> user: vagrant  
+```
+(.venv) serg@hpg11u:~/otus/otus-linux/task_12$ cat roles/docker/defaults/> main.yml   
+---  
+# defaults file for roles/docker  
+user: vagrant  
+```
 
 Собственно задачу разобьём на две части, `docker_install` и `docker_configure`, которые будем вызыватиь из `docker/tasks/mail.yml`
 
@@ -247,7 +251,7 @@ fi
 >     src: docker.polkit.j2  
 >     dest: /etc/polkit-1/rules.d/01-docker.rules  
 
-Посредством шаблона `docker.polkit.j2` сделаем файл с политикой для нашего пользователя (если уже забыл кто, это - `vagrant`), где разрешим ему управлять юнитами `systemd`, в часности - docker'ом.
+Посредством шаблона `docker.polkit.j2` сделаем файл с политикой для нашего пользователя (если кто уже забыл, это - `vagrant`), где разрешим ему управлять юнитами `systemd`, в часности - docker'ом.
 
 > polkit.addRule(function(action, subject) {  
 >   if (action.id.match("org.freedesktop.systemd1.manage-units") && subject.user === "{{ user }}") {  
