@@ -1,0 +1,6 @@
+---
+# handlers file for roles/pam
+- name: restart sshd
+  systemd: 
+    name: sshd
+    state: restarted

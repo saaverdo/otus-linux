@@ -1,0 +1,28 @@
+---
+# tasks file for roles/docker
+- name: Create dir for systemd unit
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+
+- name: Create unit file to override default unit
+  template:
+    src: docker.conf.j2
+    dest: /etc/systemd/system/docker.service.d/docker.conf
+  notify:
+    - Restart docker
+
+- name: Re-read changes
+  systemd:
+    daemon-reload: yes
+
+- name: Enable and start docker
+  systemd:
+    name: docker.service
+    state: started
+    enabled: yes
+
+- name: Deploy PolKit rule for docker
+  template:
+    src: docker.polkit.j2
+    dest: /etc/polkit-1/rules.d/01-docker.rules

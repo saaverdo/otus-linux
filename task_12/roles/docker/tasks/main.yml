@@ -1,0 +1,11 @@
+---
+# tasks file for roles/docker
+- name: Install docker
+  include_tasks: docker_install.yml
+  tags:
+    - docker_install
+
+- name: Configure rights
+  include_tasks: docker_configure.yml
+  tags:
+    - docker_configure

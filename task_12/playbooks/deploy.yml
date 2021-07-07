@@ -1,0 +1,9 @@
+---
+- name: Deploy vagrant machine
+  hosts: all
+  become: true
+  
+  roles:
+    - pam
+    - docker
+    

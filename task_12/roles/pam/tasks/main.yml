@@ -1,0 +1,63 @@
+---
+# tasks file for roles/pam
+- name: Create group
+  group: 
+    name: admin
+    state: present
+
+- name: Create users
+  user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    state: present
+  when: item.password is defined
+  loop: "{{ pam_users }}"
+  tags:
+    - users
+
+- name: add users to their group
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    state: present
+  loop: "{{ pam_users }}"
+  tags:
+    - users
+
+- name: Enable ssh Passwords auth
+  shell: "sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config"
+  notify: restart sshd
+  tags:
+    - users
+
+- name: Copy script for pam_exec
+  template:
+    src: ssh_login.sh.j2
+    dest: /usr/local/bin/ssh_login.sh
+    mode: "0555"
+  tags:
+    - pam_copy_script
+
+- name: Enable pam_exec for sshd
+  community.general.pamd:
+    name: sshd
+    type: account
+    control: required
+    module_path: pam_nologin.so
+    new_type: account
+    new_control: required
+    new_module_path: pam_exec.so
+    module_arguments: /usr/local/bin/ssh_login.sh
+    state: before
+
+- name: Enable pam_exec for login
+  community.general.pamd:
+    name: login
+    type: account
+    control: required
+    module_path: pam_nologin.so
+    new_type: account
+    new_control: required
+    new_module_path: pam_exec.so
+    module_arguments: /usr/local/bin/ssh_login.sh
+    state: before

@@ -1,0 +1,14 @@
+---
+# Admins group name
+pam_group: admin
+
+# List of users
+pam_users:
+  - name: usr_monk
+    password: $1$KneeDeep$nfpYLDN8gquJ.Vb7fqNKv0
+    groups: users
+  - name: usr_bishop
+    password: $1$Shore0He$H/wZimKodYm2n4ohDXBDo1
+    groups: admin
+  - name: vagrant
+    groups: admin
