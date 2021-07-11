@@ -1,0 +1,13 @@
+---
+# defaults file for roles/zabbix
+zabbix_host_packages:
+  - zabbix-server-mysql 
+  - zabbix-agent 
+  - zabbix-get
+
+zabbix_front_packages:
+  - zabbix-web-mysql-scl
+  - zabbix-nginx-conf-scl
+
+zabbix_user_pass: Im2youngtod1e
+zabbix-server-mysql zabbix-agent zabbix-get

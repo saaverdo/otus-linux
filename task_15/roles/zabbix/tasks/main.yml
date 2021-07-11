@@ -1,0 +1,71 @@
+---
+# tasks file for roles/zabbix
+- name: Install Zabbix repo
+  yum:
+    name: https://repo.zabbix.com/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+    state: present
+
+- name: Install Zabbix packages
+  yum:
+    name: '{{ item }}'
+    state: present
+  loop: '{{ zabbix_host_packages }}'
+
+- name: Install Zabbix frontend packages
+  yum:
+    name: '{{ item }}'
+    state: present
+    enablerepo: zabbix-frontend
+  loop: '{{ zabbix_front_packages }}'
+
+
+- name: create home directory
+  file: 
+    path: /var/lib/zabbix
+    state: directory
+    owner: zabbix
+    group: zabbix
+    mode: 0700
+
+- name: put .my.cnf
+  template:
+    src: .my.cnf.j2
+    dest: /var/lib/zabbix/.my.cnf
+    mode: 600
+    owner: zabbix
+    group: zabbix
+
+- name: get zabbix version
+  shell: >
+    ls -d zabbix-server-mysql-* | awk -F- '{print $4}' | sort -n
+    chdir=/usr/share/doc
+  changed_when: False
+  register: zabbix_version
+
+- name: import mysql tables
+  shell: >
+    zcat /usr/share/doc/zabbix-server-mysql-{{ zabbix_version.stdout }}/create.sql.gz \
+    | mysql zabbix \
+    && touch /root/.zabbix.schema.imported
+    creates=/root/.zabbix.schema.imported
+
+- name: remove guest user
+  script: remove_zabbix_user.sh guest
+  register: result
+  changed_when: '"already removed" not in result.stdout'
+
+- name: put zabbix_server.conf
+  template:
+    src: zabbix_server.conf.j2
+    dest: /etc/zabbix/zabbix_server.conf
+    owner: root
+    group: zabbix
+    mode: 0640
+  notify: restart zabbix-server
+
+- name: put zabbix.conf.php
+  template:
+    src: zabbix.conf.php.j2
+    dest: /etc/zabbix/web/zabbix.conf.php
+    owner: apache
+    group: apache

@@ -1,0 +1,52 @@
+---
+# tasks file for roles/mysql
+- name: Install MYSQL
+  yum:
+    name: mariadb-server
+    state: present
+  tags:
+    - install_mysql
+
+- name: Install MySQL-python
+  yum:
+    name: MySQL-python
+    state: present
+  tags:
+    - install_mysql
+
+- name: start MYSQL
+  systemd:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: set mysql root password
+  community.mysql.mysql_user: 
+    name: root
+    host: localhost
+    password: "{{ mysql_root_pass }}"
+    
+- name: copy my.cnf
+  template:
+    src: .my.cnf.j2
+    dest: /root/.my.cnf
+    mode: 600 
+
+- name: create mysql database
+  community.mysql.mysql_db:
+    name: zabbix
+
+
+- name: add mysql zabbix user
+  community.mysql.mysql_user: 
+    name: zabbix
+    host: localhost
+    password: "{{ mysql_user_pass }}"
+    priv: zabbix.*:ALL
+
+- name: Removes all anonymous user accounts
+  community.mysql.mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+  

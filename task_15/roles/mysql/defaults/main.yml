@@ -1,0 +1,4 @@
+---
+# defaults file for roles/mysql
+mysql_root_pass: Hurtmeplently
+mysql_user_pass: Im2youngtod1e

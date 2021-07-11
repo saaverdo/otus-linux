@@ -1,0 +1,9 @@
+---
+# defaults file for roles/nginx
+nginx_listen_port: 8080
+
+prepare_host_packages:
+  - vim
+  - tree
+  - bind-utils
+  - MySQL-python
