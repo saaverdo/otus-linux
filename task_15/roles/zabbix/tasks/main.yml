@@ -18,7 +18,6 @@
     enablerepo: zabbix-frontend
   loop: '{{ zabbix_front_packages }}'
 
-
 - name: create home directory
   file: 
     path: /var/lib/zabbix
@@ -31,23 +30,25 @@
   template:
     src: .my.cnf.j2
     dest: /var/lib/zabbix/.my.cnf
-    mode: 600
+    mode: 0600
     owner: zabbix
     group: zabbix
 
 - name: get zabbix version
   shell: >
-    ls -d zabbix-server-mysql-* | awk -F- '{print $4}' | sort -n
+    ls -d /usr/share/doc/zabbix-server-mysql-* | awk -F- '{print $4}' | sort -n
     chdir=/usr/share/doc
   changed_when: False
   register: zabbix_version
+  tags:
+    - restart_all
 
 - name: import mysql tables
-  shell: >
-    zcat /usr/share/doc/zabbix-server-mysql-{{ zabbix_version.stdout }}/create.sql.gz \
-    | mysql zabbix \
-    && touch /root/.zabbix.schema.imported
-    creates=/root/.zabbix.schema.imported
+  shell: zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -uzabbix -p{{ zabbix_user_pass }} zabbix && touch /root/.zabbix.schema.imported
+  args:
+    creates: /root/.zabbix.schema.imported
+  tags:
+  - restart_all
 
 - name: remove guest user
   script: remove_zabbix_user.sh guest
@@ -61,11 +62,50 @@
     owner: root
     group: zabbix
     mode: 0640
-  notify: restart zabbix-server
+  notify: restart_all
+  tags:
+    - restart_all
 
-- name: put zabbix.conf.php
+- name: put php-fpm config
+  template:
+    src: php-fpm.d/zabbix.conf.j2
+    dest: /etc/opt/rh/rh-php72/php-fpm.d/zabbix.conf
+    owner: apache
+    group: apache
+    mode: 0600
+  notify: restart_all
+  tags:
+    - restart_all
+
+- name: put zabbix nginx config
+  template:
+    src: conf.d/zabbix.conf.j2
+    dest: /etc/opt/rh/rh-nginx116/nginx/conf.d/zabbix.conf
+    owner: apache
+    group: apache
+    mode: 0600
+  notify: restart_all
+  tags:
+    - restart_all
+
+- name: put nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/opt/rh/rh-nginx116/nginx/nginx.conf
+    owner: apache
+    group: apache
+    mode: 0600
+  notify: restart_all
+  tags:
+    - restart_all
+
+- name: put zabbix web client config
   template:
     src: zabbix.conf.php.j2
     dest: /etc/zabbix/web/zabbix.conf.php
     owner: apache
     group: apache
+    mode: 0600
+  notify: restart_all
+  tags:
+    - restart_all

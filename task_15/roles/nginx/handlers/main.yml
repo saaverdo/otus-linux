@@ -2,10 +2,14 @@
 # handlers file for roles/nginx
 - name: restart nginx
   systemd:
-    name: "{{ nginx_name }}"
+    name: nginx
     state: restarted
     enabled: yes
 - name: reload nginx
   systemd:
-    name: "{{ nginx_name }}"
+    name: nginx
+    state: reloaded
+- name: reload zabbix-agent
+  systemd:
+    name: zabbix-agent
     state: reloaded

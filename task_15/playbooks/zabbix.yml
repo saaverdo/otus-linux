@@ -1,5 +1,7 @@
 - name: MYSQL
-  hosts: all
+  hosts: zabbix
   become: true
   roles:
     - mysql
+    - prepare
+    - zabbix

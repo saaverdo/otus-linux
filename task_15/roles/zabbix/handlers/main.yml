@@ -4,8 +4,28 @@
   systemd:
     name: zabbix-server
     state: restarted
+    enabled: yes
 
-- name: reload nginx
+- name: reload "{{ nginx_package_name }}"
   systemd:
-    name: nginx
+    name: "{{ nginx_package_name }}"
     state: reloaded
+    enabled: yes
+
+- name: restart PHP
+  systemd:
+    name: "{{ php_package_name }}"
+    state: restarted
+    enabled: yes
+
+- name: restart_all
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+  loop:
+    - zabbix-server
+    - zabbix-agent 
+    - "{{ php_package_name }}"
+    - "{{ nginx_package_name }}"
+

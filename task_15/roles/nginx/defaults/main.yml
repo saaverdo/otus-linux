@@ -1,12 +1,10 @@
 ---
 # defaults file for roles/nginx
-nginx_name: rh-nginx116-nginx
-
 nginx_listen_port: 8080
+#zabbix_server_address: 127.0.0.1
+zabbix_server_address: 10.114.0.2
 
-prepare_host_packages:
+nginx_host_packages:
   - vim
   - tree
   - bind-utils
-  - MySQL-python
-

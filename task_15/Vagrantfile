@@ -7,8 +7,12 @@ MACHINES = {
         :ip_addr => '192.168.11.101',
         :host_port => 8080
         },
+  :"task-15-agent" => {
+        :box_name => "saaverdo/centos-7-5-8",
+        :ip_addr => '192.168.11.102',
+        :host_port => 8082
+        },        
   }
-
 
 Vagrant.configure("2") do |config|
 
@@ -20,8 +24,8 @@ Vagrant.configure("2") do |config|
           box.vm.host_name = boxname.to_s
 
           box.vm.network "forwarded_port", guest: 8080, host: boxconfig[:host_port]
-          box.vm.network "forwarded_port", guest: 80, host: 8081
-          #box.vm.network "private_network", ip: boxconfig[:ip_addr]
+          #box.vm.network "forwarded_port", guest: 80, host: 8081
+          box.vm.network "private_network", ip: boxconfig[:ip_addr]
 
           box.vm.provider :virtualbox do |vb|
                   vb.memory = 1024

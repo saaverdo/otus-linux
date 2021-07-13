@@ -1,5 +1,12 @@
 ---
 # defaults file for roles/zabbix
+#zabbix_server_name: otus-lab-15.bsv.pp.com.ua
+zabbix_server_name: example.com
+nginx_package_name: rh-nginx116-nginx
+php_package_name: rh-php72-php-fpm
+
+nginx_listen_port: 8080
+
 zabbix_host_packages:
   - zabbix-server-mysql 
   - zabbix-agent 
@@ -10,4 +17,4 @@ zabbix_front_packages:
   - zabbix-nginx-conf-scl
 
 zabbix_user_pass: Im2youngtod1e
-zabbix-server-mysql zabbix-agent zabbix-get
+php_timezone: Europe/Kiev

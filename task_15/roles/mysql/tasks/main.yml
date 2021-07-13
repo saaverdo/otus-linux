@@ -35,7 +35,9 @@
 - name: create mysql database
   community.mysql.mysql_db:
     name: zabbix
-
+    state: present
+    encoding: utf8
+    collation: utf8_bin
 
 - name: add mysql zabbix user
   community.mysql.mysql_user: 
@@ -49,4 +51,3 @@
     name: ''
     host_all: yes
     state: absent
-  

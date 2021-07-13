@@ -1,0 +1,19 @@
+all:
+  children:
+    web:
+    zabbix:
+  vars:
+    ansible_ssh_private_key_file: /home/serg/.ssh/id_do.pub
+#    ansible_host: 127.0.0.1
+
+web:  
+  hosts:  
+    otus-15-ngx-02:  
+      ansible_host: 178.128.198.8
+      ansible_port: 22  
+
+zabbix:
+  hosts:    
+    otus-15-zbx-01:  
+      ansible_host: 207.154.200.37
+      ansible_port: 22  
