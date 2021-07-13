@@ -34,8 +34,8 @@ https://www.zabbix.com/documentation/5.0/manual/installation/frontend/frontend_o
 otus-15-zbx-01  10.114.0.2  207.154.200.37
 otus-15-ngx-02  10.114.0.3  178.128.198.8
 
-теперь можно посмотреть графики на стенде - http://ots-zbx.bsvv.pp.ua:8080
-login:  otus
-passwd: 0tusPa$$w0rD
+теперь можно посмотреть графики на стенде - http://ots-zbx.bsvv.pp.ua:8080  
+login:  otus  
+passwd: 0tusPa$$w0rD  
 
 ![Скрин дашборда zabbix](zabbix_screenshot.jpg)
