@@ -1,0 +1,83 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+home = ENV['HOME']
+
+MACHINES = {
+  :"client" => {
+        :box_name => "saaverdo/centos-7-5-8",
+        :ip_addr => '192.168.11.102',
+        :host_port => 8080
+        },
+  :"backup-server" => {
+        :box_name => "saaverdo/centos-7-5-8",
+        :ip_addr => '192.168.11.101',
+        :host_port => 8082,
+        :disks => {
+          :sata1 => {
+              :dfile => home + '/VirtualBox VMs/sata-1.vdi',
+              :size => 2048,
+              :port => 1
+          },
+          :sata2 => {
+              :dfile => home + '/VirtualBox VMs/sata-2.vdi',
+              :size => 2048,
+              :port => 2
+          },        
+        },
+      },
+ }
+
+Vagrant.configure("2") do |config|
+
+    MACHINES.each do |boxname, boxconfig|
+
+      config.vm.define boxname do |box|
+
+          box.vm.box = boxconfig[:box_name]
+          box.vm.host_name = boxname.to_s
+
+          box.vm.network "forwarded_port", guest: 8080, host: boxconfig[:host_port]
+          #box.vm.network "forwarded_port", guest: 80, host: 8081
+          box.vm.network "private_network", ip: boxconfig[:ip_addr]
+          
+          box.vm.provider :virtualbox do |vb|
+            vb.memory = 1024
+            vb.cpus = 1
+            
+            if boxconfig.key?(:disks)
+              needsController = false
+              boxconfig[:disks].each do |dname, dconf|
+                  unless File.exist?(dconf[:dfile])
+                    vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
+                                    needsController =  true
+                              end
+                            
+              end
+                      if needsController == true
+                         vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
+                         boxconfig[:disks].each do |dname, dconf|
+                             vb.customize ['storageattach', :id,  '--storagectl', 'SATA', '--port', dconf[:port], '--device', 0, '--type', 'hdd', '--medium', dconf[:dfile]]
+                         end
+                      end
+              end
+            end
+
+          config.vm.synced_folder ".", "/vagrant", type: "virtualbox", disabled: false
+
+          box.vm.provision "shell", inline: <<-SHELL
+            mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh
+            sed -i '65s/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+            systemctl restart sshd
+            yum install -y epel-release
+            yum install -y borgbackup
+          SHELL
+          if boxname.to_s == "backup-server"
+            box.vm.provision "part 1", type: "shell", path: "./provision/1_srv_lvm_setup.sh"
+            box.vm.provision "part 2", type: "shell", path: "./provision/2_srv_borg_install.sh"
+          end
+          if boxname.to_s == "client"
+            box.vm.provision "part 1", type: "shell", path: "./provision/1_cli_systemd_files.sh"
+          end
+        end
+    end
+end
